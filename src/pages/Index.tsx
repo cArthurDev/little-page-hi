@@ -1,4 +1,16 @@
 const Index = () => {
+  const [isPinkMode, setIsPinkMode] = React.useState(false);
+
+  React.useEffect(() => {
+    if (isPinkMode) {
+      document.documentElement.style.setProperty('--primary', '340 70% 60%');
+      document.documentElement.style.setProperty('--primary-glow', '340 85% 75%');
+    } else {
+      document.documentElement.style.setProperty('--primary', '263 70% 60%');
+      document.documentElement.style.setProperty('--primary-glow', '263 85% 75%');
+    }
+  }, [isPinkMode]);
+
   return (
     <main className="relative flex min-h-screen items-center justify-center overflow-hidden bg-background">
       {/* Gradient Glow Background */}
@@ -19,6 +31,14 @@ const Index = () => {
         
         {/* Decorative Line */}
         <div className="mt-8 mx-auto h-1 w-32 bg-gradient-primary rounded-full shadow-glow" />
+        
+        {/* Botão para mudar para rosa */}
+        <button
+          onClick={() => setIsPinkMode(!isPinkMode)}
+          className="mt-8 px-6 py-3 bg-primary text-primary-foreground rounded-lg font-medium transition-all hover:scale-105 active:scale-95"
+        >
+          {isPinkMode ? 'Voltar ao roxo' : 'Mudar para rosa'}
+        </button>
       </div>
       
       {/* Bottom Gradient */}
