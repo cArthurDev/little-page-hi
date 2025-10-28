@@ -3,6 +3,7 @@ import { Search, Trash2, DollarSign } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { useAuth } from '@/utils/auth';
 
 interface User {
   id: string;
@@ -18,31 +19,21 @@ const AdminDashboard = () => {
   const [users, setUsers] = useState<User[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [filteredUsers, setFilteredUsers] = useState<User[]>([]);
+  const { admin, logout } = useAuth();
 
   useEffect(() => {
-    // Simulação de dados - na implementação real, viria da API
-    const mockUsers: User[] = [
-      {
-        id: '1',
-        name: 'Maria Clara',
-        email: 'maria@example.com',
-        phone: '(11) 99999-9999',
-        cpf: '123.456.789-00',
-        pixKey: 'maria@pix.com',
-        emailVerified: true
-      },
-      {
-        id: '2',
-        name: 'João Silva',
-        email: 'joao@example.com',
-        phone: '(21) 88888-8888',
-        cpf: '987.654.321-00',
-        pixKey: 'joao@pix.com',
-        emailVerified: false
+    // Carregar usuários do arquivo de teste
+    const loadUsers = async () => {
+      try {
+        const response = await fetch('/data/users.txt');
+        const data = await response.json();
+        setUsers(data);
+        setFilteredUsers(data);
+      } catch (error) {
+        console.error('Erro ao carregar usuários:', error);
       }
-    ];
-    setUsers(mockUsers);
-    setFilteredUsers(mockUsers);
+    };
+    loadUsers();
   }, []);
 
   useEffect(() => {
@@ -71,12 +62,38 @@ const AdminDashboard = () => {
     console.log('Ação PIX para usuário:', userId);
   };
 
+  if (!admin) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-black">
+        <div className="text-center text-white">
+          <h1 className="text-2xl font-bold mb-4">Acesso Negado</h1>
+          <p>Você precisa fazer login como administrador para acessar esta página.</p>
+          <Button 
+            onClick={() => window.location.href = '/'} 
+            className="mt-4 bg-red-600 hover:bg-red-700"
+          >
+            Voltar ao Login
+          </Button>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-background p-6">
       <div className="max-w-7xl mx-auto">
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold mb-2">Painel Administrativo</h1>
-          <p className="text-muted-foreground">Gerencie todos os membros cadastrados</p>
+        <div className="mb-8 flex justify-between items-center">
+          <div>
+            <h1 className="text-3xl font-bold mb-2">Painel Administrativo</h1>
+            <p className="text-muted-foreground">Gerencie todos os membros cadastrados</p>
+          </div>
+          <Button 
+            onClick={logout}
+            variant="outline"
+            className="border-red-600 text-red-600 hover:bg-red-600 hover:text-white"
+          >
+            Sair
+          </Button>
         </div>
 
         {/* Barra de pesquisa e botão de exclusão */}

@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Eye, EyeOff } from 'lucide-react';
+import { useAuth } from '@/utils/auth';
 
 const loginSchema = z.object({
   email: z.string().email('E-mail inválido'),
@@ -18,6 +19,9 @@ const Index = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
+  const [isAdmin, setIsAdmin] = useState(false);
+  
+  const { login, isAuthenticated } = useAuth();
 
   const {
     register,
@@ -32,20 +36,16 @@ const Index = () => {
     setError('');
 
     try {
-      // Na implementação real, chamaria a API de autenticação
-      const response = await fetch('/api/login', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(data)
-      });
-
-      if (response.ok) {
-        // Salvar token e redirecionar
-        const result = await response.json();
-        localStorage.setItem('userToken', result.token);
-        window.location.href = '/dashboard';
+      const success = await login(data.email, data.password, isAdmin);
+      
+      if (success) {
+        if (isAdmin) {
+          window.location.href = '/admin';
+        } else {
+          window.location.href = '/dashboard';
+        }
       } else {
-        setError('Credenciais inválidas');
+        setError(isAdmin ? 'Credenciais administrativas inválidas' : 'Credenciais inválidas');
       }
     } catch (err) {
       setError('Erro ao fazer login. Tente novamente.');
@@ -53,6 +53,17 @@ const Index = () => {
       setIsLoading(false);
     }
   };
+
+  if (isAuthenticated) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-black">
+        <div className="text-center text-white">
+          <h1 className="text-2xl font-bold mb-4">Redirecionando...</h1>
+          <p>Por favor aguarde.</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-black">
@@ -76,17 +87,33 @@ const Index = () => {
                 </svg>
               </div>
             </div>
-            <CardTitle className="text-2xl font-bold text-white">Login</CardTitle>
-            <p className="text-gray-400">Acesse sua conta para continuar</p>
+            <CardTitle className="text-2xl font-bold text-white">
+              {isAdmin ? 'Login Administrativo' : 'Login'}
+            </CardTitle>
+            <p className="text-gray-400">
+              {isAdmin ? 'Acesse o painel administrativo' : 'Acesse sua conta para continuar'}
+            </p>
           </CardHeader>
           <CardContent>
+            <div className="mb-4">
+              <label className="flex items-center cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={isAdmin}
+                  onChange={(e) => setIsAdmin(e.target.checked)}
+                  className="mr-2"
+                />
+                <span className="text-sm text-gray-300">Login Administrativo</span>
+              </label>
+            </div>
+            
             <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
               <div>
                 <label className="block text-sm font-medium mb-1 text-gray-300">E-mail</label>
                 <Input 
                   {...register('email')} 
                   type="email" 
-                  placeholder="seu@email.com"
+                  placeholder={isAdmin ? 'admin@exemplo.com' : 'seu@email.com'}
                   className="bg-black/50 border-red-600/50 text-white placeholder-gray-500 focus:border-red-500"
                 />
                 {errors.email && <p className="text-red-500 text-sm mt-1">{errors.email.message}</p>}
@@ -121,15 +148,15 @@ const Index = () => {
                 className="w-full bg-red-600 hover:bg-red-700 text-white font-medium py-2"
                 disabled={isLoading}
               >
-                {isLoading ? 'Entrando...' : 'Entrar'}
+                {isLoading ? 'Entrando...' : isAdmin ? 'Entrar como Admin' : 'Entrar'}
               </Button>
             </form>
 
             <div className="mt-6 text-center">
               <p className="text-gray-400 text-sm">
-                Não tem conta?{' '}
-                <a href="/register" className="text-red-500 hover:text-red-400 font-medium">
-                  Cadastre-se
+                {isAdmin ? 'Não é admin? ' : 'Não tem conta? '}
+                <a href={isAdmin ? '/' : '/register'} className="text-red-500 hover:text-red-400 font-medium">
+                  {isAdmin ? 'Login normal' : 'Cadastre-se'}
                 </a>
               </p>
             </div>
