@@ -1,3 +1,5 @@
+import React from 'react';
+
 const Index = () => {
   const [isPinkMode, setIsPinkMode] = React.useState(false);
 
