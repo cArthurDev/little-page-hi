@@ -11,9 +11,9 @@ const Index = () => {
       {/* Content */}
       <div className="relative z-10 text-center px-4 animate-fade-in">
         <h1 className="mb-6 text-7xl md:text-9xl font-black tracking-tight bg-gradient-primary bg-clip-text text-transparent drop-shadow-2xl">
-          Hello World
+          Maria Clara
         </h1>
-        <p className="text-xl md:text-2xl text-foreground/80 font-light tracking-wide">
+        <p className="mb-4 text-xl md:text-2xl text-foreground/80 font-light tracking-wide">
           Bem-vindo ao futuro
         </p>
         
