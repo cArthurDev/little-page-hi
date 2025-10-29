@@ -26,40 +26,34 @@ export const useAuth = () => {
     
     if (token) {
       setIsAuthenticated(true);
-      // Em uma implementação real, buscaria os dados do usuário pelo token
     }
     
     if (adminToken) {
-      // Em uma implementação real, buscaria os dados do admin pelo token
+      setIsAuthenticated(true);
     }
   }, []);
 
   const login = async (email: string, password: string, isAdmin: boolean = false) => {
     try {
-      let data;
+      // Simulação de autenticação - em um app real, isso seria uma chamada API
       if (isAdmin) {
-        // Carregar dados dos admins
-        const response = await fetch('/data/admins.txt');
-        data = await response.json();
-      } else {
-        // Carregar dados dos usuários
-        const response = await fetch('/data/users.txt');
-        data = await response.json();
-      }
-      
-      const foundUser = data.find((u: any) => u.email === email && u.password === password);
-      
-      if (foundUser) {
-        if (isAdmin) {
+        // Verificar credenciais de admin
+        if (email === 'arthur@gmail.com' && password === 'arthur123@') {
           localStorage.setItem('adminToken', 'admin-token-' + Date.now());
-          setAdmin({ id: foundUser.id, email: foundUser.email });
-        } else {
-          localStorage.setItem('userToken', 'user-token-' + Date.now());
-          setUser(foundUser);
+          setAdmin({ id: '1', email: email });
+          setIsAuthenticated(true);
+          return true;
         }
-        setIsAuthenticated(true);
-        return true;
+      } else {
+        // Verificar credenciais de usuário normal
+        if (email === 'user@teste.com' && password === 'user123@') {
+          localStorage.setItem('userToken', 'user-token-' + Date.now());
+          setUser({ id: '1', name: 'Usuário Teste', email, phone: '(11) 99999-9999', cpf: '123.456.789-00', pixKey: 'user@teste.com', emailVerified: true });
+          setIsAuthenticated(true);
+          return true;
+        }
       }
+      
       return false;
     } catch (error) {
       console.error('Erro ao fazer login:', error);
