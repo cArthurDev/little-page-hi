@@ -26,34 +26,58 @@ export const useAuth = () => {
     
     if (token) {
       setIsAuthenticated(true);
+      // Carregar dados do usuário
+      const storedUser = localStorage.getItem('userData');
+      if (storedUser) {
+        setUser(JSON.parse(storedUser));
+      }
     }
     
     if (adminToken) {
       setIsAuthenticated(true);
+      // Carregar dados do admin
+      const storedAdmin = localStorage.getItem('adminData');
+      if (storedAdmin) {
+        setAdmin(JSON.parse(storedAdmin));
+      } else {
+        // Tentar carregar do arquivo de dados
+        fetch('/data/admins.txt')
+          .then(res => res.json())
+          .then(data => {
+            if (data.length > 0) {
+              setAdmin(data[0]);
+              localStorage.setItem('adminData', JSON.stringify(data[0]));
+            }
+          })
+          .catch(console.error);
+      }
     }
   }, []);
 
   const login = async (email: string, password: string, isAdmin: boolean = false) => {
     try {
-      // Simulação de autenticação - em um app real, isso seria uma chamada API
+      let data;
       if (isAdmin) {
-        // Verificar credenciais de admin
-        if (email === 'arthur@gmail.com' && password === 'arthur123@') {
-          localStorage.setItem('adminToken', 'admin-token-' + Date.now());
-          setAdmin({ id: '1', email: email });
-          setIsAuthenticated(true);
-          return true;
-        }
+        data = await fetch('/data/admins.txt').then(res => res.json());
       } else {
-        // Verificar credenciais de usuário normal
-        if (email === 'user@teste.com' && password === 'user123@') {
-          localStorage.setItem('userToken', 'user-token-' + Date.now());
-          setUser({ id: '1', name: 'Usuário Teste', email, phone: '(11) 99999-9999', cpf: '123.456.789-00', pixKey: 'user@teste.com', emailVerified: true });
-          setIsAuthenticated(true);
-          return true;
-        }
+        data = await fetch('/data/users.txt').then(res => res.json());
       }
       
+      const foundUser = data.find((u: any) => u.email === email && u.password === password);
+      
+      if (foundUser) {
+        if (isAdmin) {
+          localStorage.setItem('adminToken', 'admin-token-' + Date.now());
+          setAdmin(foundUser);
+          localStorage.setItem('adminData', JSON.stringify(foundUser));
+        } else {
+          localStorage.setItem('userToken', 'user-token-' + Date.now());
+          setUser(foundUser);
+          localStorage.setItem('userData', JSON.stringify(foundUser));
+        }
+        setIsAuthenticated(true);
+        return true;
+      }
       return false;
     } catch (error) {
       console.error('Erro ao fazer login:', error);
@@ -64,6 +88,8 @@ export const useAuth = () => {
   const logout = () => {
     localStorage.removeItem('userToken');
     localStorage.removeItem('adminToken');
+    localStorage.removeItem('userData');
+    localStorage.removeItem('adminData');
     setIsAuthenticated(false);
     setUser(null);
     setAdmin(null);
