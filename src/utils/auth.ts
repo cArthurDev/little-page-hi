@@ -36,18 +36,26 @@ export const useAuth = () => {
 
   const login = async (email: string, password: string, isAdmin: boolean = false) => {
     try {
-      const response = await fetch(isAdmin ? '/data/admins.txt' : '/data/users.txt');
-      const data = await response.json();
+      let data;
+      if (isAdmin) {
+        // Carregar dados dos admins
+        const response = await fetch('/data/admins.txt');
+        data = await response.json();
+      } else {
+        // Carregar dados dos usuários
+        const response = await fetch('/data/users.txt');
+        data = await response.json();
+      }
       
-      const user = data.find((u: any) => u.email === email && u.password === password);
+      const foundUser = data.find((u: any) => u.email === email && u.password === password);
       
-      if (user) {
+      if (foundUser) {
         if (isAdmin) {
           localStorage.setItem('adminToken', 'admin-token-' + Date.now());
-          setAdmin({ id: user.id, email: user.email });
+          setAdmin({ id: foundUser.id, email: foundUser.email });
         } else {
           localStorage.setItem('userToken', 'user-token-' + Date.now());
-          setUser(user);
+          setUser(foundUser);
         }
         setIsAuthenticated(true);
         return true;
