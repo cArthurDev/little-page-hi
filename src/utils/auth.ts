@@ -15,6 +15,23 @@ interface Admin {
   email: string;
 }
 
+// Dados fixos de administrador
+const ADMIN_DATA: Admin = {
+  id: '1',
+  email: 'arthur@gmail.com'
+};
+
+// Dados fixos de usuário
+const USER_DATA: User = {
+  id: '1',
+  name: 'Usuário Teste',
+  email: 'user@teste.com',
+  phone: '(11) 99999-9999',
+  cpf: '123.456.789-00',
+  pixKey: 'user@teste.com',
+  emailVerified: true
+};
+
 export const useAuth = () => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [user, setUser] = useState<User | null>(null);
@@ -26,58 +43,35 @@ export const useAuth = () => {
     
     if (token) {
       setIsAuthenticated(true);
-      // Carregar dados do usuário
-      const storedUser = localStorage.getItem('userData');
-      if (storedUser) {
-        setUser(JSON.parse(storedUser));
-      }
+      setUser(USER_DATA);
     }
     
     if (adminToken) {
       setIsAuthenticated(true);
-      // Carregar dados do admin
-      const storedAdmin = localStorage.getItem('adminData');
-      if (storedAdmin) {
-        setAdmin(JSON.parse(storedAdmin));
-      } else {
-        // Tentar carregar do arquivo de dados
-        fetch('/data/admins.txt')
-          .then(res => res.json())
-          .then(data => {
-            if (data.length > 0) {
-              setAdmin(data[0]);
-              localStorage.setItem('adminData', JSON.stringify(data[0]));
-            }
-          })
-          .catch(console.error);
-      }
+      setAdmin(ADMIN_DATA);
     }
   }, []);
 
   const login = async (email: string, password: string, isAdmin: boolean = false) => {
     try {
-      let data;
       if (isAdmin) {
-        data = await fetch('/data/admins.txt').then(res => res.json());
-      } else {
-        data = await fetch('/data/users.txt').then(res => res.json());
-      }
-      
-      const foundUser = data.find((u: any) => u.email === email && u.password === password);
-      
-      if (foundUser) {
-        if (isAdmin) {
+        // Verificar credenciais de admin
+        if (email === ADMIN_DATA.email && password === 'arthur123@') {
           localStorage.setItem('adminToken', 'admin-token-' + Date.now());
-          setAdmin(foundUser);
-          localStorage.setItem('adminData', JSON.stringify(foundUser));
-        } else {
-          localStorage.setItem('userToken', 'user-token-' + Date.now());
-          setUser(foundUser);
-          localStorage.setItem('userData', JSON.stringify(foundUser));
+          setAdmin(ADMIN_DATA);
+          setIsAuthenticated(true);
+          return true;
         }
-        setIsAuthenticated(true);
-        return true;
+      } else {
+        // Verificar credenciais de usuário
+        if (email === USER_DATA.email && password === 'user123@') {
+          localStorage.setItem('userToken', 'user-token-' + Date.now());
+          setUser(USER_DATA);
+          setIsAuthenticated(true);
+          return true;
+        }
       }
+      
       return false;
     } catch (error) {
       console.error('Erro ao fazer login:', error);
@@ -88,8 +82,6 @@ export const useAuth = () => {
   const logout = () => {
     localStorage.removeItem('userToken');
     localStorage.removeItem('adminToken');
-    localStorage.removeItem('userData');
-    localStorage.removeItem('adminData');
     setIsAuthenticated(false);
     setUser(null);
     setAdmin(null);
